@@ -98,11 +98,11 @@ export class Interpreter {
       this.wasi.start(inst);
       console.timeEnd("miri execution");
     } catch (e) {
-      return this.stderr.text() || this.stdout.text() || e.message;
+      return this.stderr.text() + this.stdout.text() || e.message;
     };
     
     console.log({ stdout: this.stdout.text(), stderr: this.stderr.text(), stdin: this.stdin });
-    return this.stdout.text() || this.stderr.text();
+    return this.stdout.text() + this.stderr.text();
   }
 }
 
