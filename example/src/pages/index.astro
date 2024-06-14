@@ -9,10 +9,13 @@
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Rust Browser Interpreter</title>
-		<script is:inline src="/coi-serviceworker.js"></script>
 	</head>
 	<body>
 		<h1>Rust Browser Interpreter</h1>
+		<div id="live-edit-wrapper">
+			<input id="live-edit" type="checkbox" checked />
+			<label for="live-edit">Live Edit</label>
+		</div>
 		<textarea id="input"></textarea>
 		<button>Run</button>
 		<textarea id="output" readonly></textarea>
@@ -23,7 +26,7 @@
 	body {
 		display: grid;
 	}
-	h1 {
+	body {
 		font-family: 'Courier New', Courier, monospace;
 	}
 	button {
@@ -42,15 +45,35 @@
 		height: 10rem;
 		resize: none;
 	}
+	#live-edit, #live-edit-wrapper {
+		user-select: none;
+	}
 </style>
 
 <script>
-	import { Interpreter } from "../../../src/index";
-	
-	const interpreter = await new Interpreter();
+	import { InitInterpreter } from "../../../src/index";
+
 	const input = document.body.querySelector<HTMLTextAreaElement>("textarea#input")!;
 	const output = document.body.querySelector<HTMLTextAreaElement>("textarea#output")!;
+	const button = document.body.querySelector("button")!;
+	const liveEdit = document.body.querySelector<HTMLInputElement>("#live-edit")!;
+	
+	input.value = "Loading...";
+	input.placeholder = "Write your code...";
+	input.readOnly = true;
+	const interpreter = await InitInterpreter().finally(() => {
+		input.readOnly = false;
+		input.value = "";
+	});
+
 	input.addEventListener("input", async () => {
+		if (!liveEdit.checked) {
+			return;
+		}
+		console.log(input.value);
+		output.value = await interpreter.run(input.value || "");
+	});
+	button.addEventListener("click", async () => {
 		console.log(input.value);
 		output.value = await interpreter.run(input.value || "");
 	})
