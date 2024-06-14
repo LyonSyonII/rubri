@@ -1,0 +1,17 @@
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/bin/rust-gdb
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/bin/rust-gdbgui
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/bin/rust-lldb
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/bin/rustc.wasm
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/lib/rustlib/etc/gdb_load_rust_pretty_printers.py
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/lib/rustlib/etc/gdb_lookup.py
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/lib/rustlib/etc/gdb_providers.py
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/lib/rustlib/etc/lldb_commands
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/lib/rustlib/etc/lldb_lookup.py
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/lib/rustlib/etc/lldb_providers.py
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/lib/rustlib/etc/rust_types.py
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/share/doc/rustc/COPYRIGHT
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/share/doc/rustc/LICENSE-APACHE
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/share/doc/rustc/LICENSE-MIT
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/share/doc/rustc/README.md
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/share/man/man1/rustc.1
+file:/home/lyon/Dev/Rust/miri-wasm-rustc/dist/share/man/man1/rustdoc.1

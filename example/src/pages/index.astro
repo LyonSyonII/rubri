@@ -1,0 +1,57 @@
+---
+
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Rust Browser Interpreter</title>
+		<script is:inline src="/coi-serviceworker.js"></script>
+	</head>
+	<body>
+		<h1>Rust Browser Interpreter</h1>
+		<textarea id="input"></textarea>
+		<button>Run</button>
+		<textarea id="output" readonly></textarea>
+	</body>
+</html>
+
+<style>
+	body {
+		display: grid;
+	}
+	h1 {
+		font-family: 'Courier New', Courier, monospace;
+	}
+	button {
+		display: block;
+		height: 5rem;
+	}
+	textarea {
+		font-size: x-large;
+	}
+	textarea#input {
+		height: 30rem;
+		resize: none;
+	}
+	textarea#output {
+		margin-top: 2rem;
+		height: 10rem;
+		resize: none;
+	}
+</style>
+
+<script>
+	import { Interpreter } from "../../../src/index";
+	
+	const interpreter = await new Interpreter();
+	const input = document.body.querySelector<HTMLTextAreaElement>("textarea#input")!;
+	const output = document.body.querySelector<HTMLTextAreaElement>("textarea#output")!;
+	input.addEventListener("input", async () => {
+		console.log(input.value);
+		output.value = await interpreter.run(input.value || "");
+	})
+</script>
