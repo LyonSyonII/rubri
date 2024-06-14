@@ -1,23 +1,48 @@
 import { Fd, File, Directory, PreopenDirectory, WASI, strace, OpenDirectory } from "./wasi/index";
 
 export async function initInterpreter(): Promise<Interpreter> {
-  const miri = await WebAssembly.compileStreaming(cached_or_fetch("/wasm-rustc/bin/miri.wasm"));
+  console.time("init");
 
   const stdin = new Stdio();
   const stdout = new Stdio();
   const stderr = new Stdio();
   const tmp = new PreopenDirectory("/tmp", []);
-  const sysroot = await buildSysroot();
   const root = new PreopenDirectory("/", [
     ["main.rs", new File([])],
   ]);
 
+  const [miri, sysroot] = await Promise.all([
+    WebAssembly.compileStreaming(cached_or_fetch("/wasm-rustc/bin/miri.noflush.wasm")),
+    buildSysroot()
+  ]);
+  
   const fds: [Stdio, Stdio, Stdio, OpenDirectory, OpenDirectory, OpenDirectory] = [stdin, stdout, stderr, tmp, sysroot, root];
 
   const env = [];
-  const args = ["miri", "--sysroot", "/sysroot", "main.rs", "--target", "x86_64-unknown-linux-gnu"];
-  const wasi = new WASI(args, env, fds, { debug: false });
+  const args = [
+    "miri", 
+    "--sysroot",
+     "/sysroot", 
+     "main.rs", 
+     "--target", 
+     "x86_64-unknown-linux-gnu", 
+     "-Zmir-opt-level=3", 
+     "-Zmiri-ignore-leaks",
+     "-Zmiri-permissive-provenance",
+     "-Zmiri-preemption-rate=0",
+     "-Zmiri-disable-alignment-check", 
+     "-Zmiri-disable-data-race-detector",
+     "-Zmiri-disable-stacked-borrows",
+     "-Zmiri-disable-validation",
+     "-Zmir-emit-retag=false",
+     "-Zmiri-disable-isolation",
+     "-Zmiri-panic-on-unsupported"
 
+
+  ];
+  const wasi = new WASI(args, env, fds, { debug: false });
+  
+  console.timeEnd("init");
   return new Interpreter(miri, wasi, fds, stdin, stdout, stderr);
 }
 
@@ -55,7 +80,7 @@ export class Interpreter {
     this.fds[5].dir.get_file("main.rs")!.data = new TextEncoder().encode(`fn main() {\n${code}\n}`);
     
     const inst = await WebAssembly.instantiate(this.miri, {
-      "env": { memory: new WebAssembly.Memory({ initial: 256, maximum: 1024 * 4, shared: true }) },
+      "env": { memory: new WebAssembly.Memory({ initial: 256, maximum: 1024 * 4, shared: false }) },
       "wasi": {
         "thread-spawn": function (start_arg) {
           let thread_id = this.next_thread_id++;
@@ -68,40 +93,43 @@ export class Interpreter {
     });
 
     try {
+      console.time("miri execution");
       // @ts-ignore
       this.wasi.start(inst);
+      console.timeEnd("miri execution");
     } catch (e) {
       return this.stderr.text() || this.stdout.text() || e.message;
     };
-
-    console.log({ stdout: this.stdout, stderr: this.stderr, stdin: this.stdin });
+    
+    console.log({ stdout: this.stdout.text(), stderr: this.stderr.text(), stdin: this.stdin });
     return this.stdout.text() || this.stderr.text();
   }
 }
 
 class Stdio extends Fd {
-  private out: Uint8Array
+  private out: Uint8Array[]
   
   constructor() {
     super();
-    this.out = new Uint8Array();
+    this.out = [];
   }
 
   fd_write(data: Uint8Array): { ret: number, nwritten: number } {
-    console.log({data, out: this.out})
-    this.out = new Uint8Array(this.out.length + data.length);
-    this.out.set(this.out);
-    this.out.set(data, this.out.length);
-
+    this.out.push(data);
     return { ret: 0, nwritten: data.byteLength };
   }
 
   clear() {
-    this.out = new Uint8Array();
+    this.out = [];
   }
 
   text(): string {
-    return new TextDecoder("utf-8").decode(this.out);
+    const decoder = new TextDecoder("utf-8");
+    let string = "";
+    for (const b of this.out) {
+      string += decoder.decode(b);
+    }
+    return string;
   }
 }
 
@@ -119,7 +147,6 @@ async function cached_or_fetch(path: string) {
   const cache = await caches.open("rust-quest");
   const cached = await cache.match(path);
   if (cached) {
-    console.log(`Loading from cache: ${path}`);
     return cached;
   }
   
