@@ -18,7 +18,7 @@ export class WASIProcExit extends Error {
 export default class WASI {
   args: Array<string> = [];
   env: Array<string> = [];
-  fds: Array<Fd> = [];
+  fds: Array<Fd | undefined> = [];
   inst: { exports: { memory: WebAssembly.Memory } };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   wasiImport: { [key: string]: (...args: Array<any>) => unknown };
@@ -692,7 +692,7 @@ export default class WASI {
             return ret;
           }
           // FIXME use first free fd
-          self.fds.push(fd_obj);
+          self.fds.push(fd_obj || undefined);
           const opened_fd = self.fds.length - 1;
           buffer.setUint32(opened_fd_ptr, opened_fd, true);
           return 0;

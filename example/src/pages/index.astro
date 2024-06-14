@@ -51,17 +51,17 @@
 </style>
 
 <script>
-	import { InitInterpreter } from "../../../src/index";
+	import { initInterpreter } from "../../../src/index";
 
 	const input = document.body.querySelector<HTMLTextAreaElement>("textarea#input")!;
 	const output = document.body.querySelector<HTMLTextAreaElement>("textarea#output")!;
-	const button = document.body.querySelector("button")!;
+	const button = document.body.querySelector<HTMLButtonElement>("button")!;
 	const liveEdit = document.body.querySelector<HTMLInputElement>("#live-edit")!;
 	
 	input.value = "Loading...";
 	input.placeholder = "Write your code...";
 	input.readOnly = true;
-	const interpreter = await InitInterpreter().finally(() => {
+	const interpreter = await initInterpreter().finally(() => {
 		input.readOnly = false;
 		input.value = "";
 	});

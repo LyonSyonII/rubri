@@ -448,7 +448,7 @@ export class OpenDirectory extends Fd {
 export class PreopenDirectory extends OpenDirectory {
   prestat_name: string;
 
-  constructor(name: string, contents: Map<string, Inode>) {
+  constructor(name: string, contents: Map<string, Inode> | [string, Inode][]) {
     super(new Directory(contents));
     this.prestat_name = name;
   }
@@ -693,6 +693,15 @@ export class Directory extends Inode {
     entry = new_child;
 
     return { ret: wasi.ERRNO_SUCCESS, entry };
+  }
+
+  get_file(file: string): File | null {
+    const f = this.contents.get(file);
+    if (f instanceof File) {
+      return f;
+    } else {
+      return null;
+    }
   }
 }
 
