@@ -14,10 +14,10 @@ All credits are for them, this is just a wrapper I wanted to make to see if Rust
 
 
 ## Usage
-See the [`index.astro`](./src/pages/index.astro) file for an example on how Miri can be used from javascript.  
+See the [`index.astro`](./example/src/pages/index.astro) file for an example on how Miri can be used from javascript.  
 This example has been made with `Vite` or `Astro` in mind, if you don't use any of them you can still run the code by removing the `import.meta.env` directives and adapting the fetch paths.
 
-The [`public/wasm-rustc`](./public/wasm-rustc/) folder is needed, as it contains the compiled Miri and the necessary `.rlib` libraries.  
+The [`public/wasm-rustc`](./example/public/wasm-rustc/) folder is needed, as it contains the compiled Miri and the necessary `.rlib` libraries.  
 You can build your own `wasm-rustc` files by following the instructions in [this issue comment](https://github.com/rust-lang/miri/issues/722#issuecomment-1961278711).
 
 
