@@ -5,6 +5,7 @@ import compressor from "astro-compressor";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://garriga.dev",
   base: "/rubri",
   integrations: [compress(), compressor({
     brotli: false,
