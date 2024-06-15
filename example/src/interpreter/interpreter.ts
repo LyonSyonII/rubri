@@ -12,7 +12,7 @@ export async function initInterpreter(): Promise<Interpreter> {
   ]);
 
   const [miri, sysroot] = await Promise.all([
-    WebAssembly.compileStreaming(cached_or_fetch("/wasm-rustc/bin/miri.noflush.opts.wasm")),
+    WebAssembly.compileStreaming(cached_or_fetch("/wasm-rustc/bin/miri.opt.1718474653.wasm").finally(() => postMessage({downloaded: "miri.opt.1718474653.wasm"}))),
     buildSysroot()
   ]);
   
@@ -197,7 +197,7 @@ async function buildSysroot(): Promise<PreopenDirectory> {
               "libunicode_width-19a0dcd589fa0877.rlib",
               "libunwind-747b693f90af9445.rlib",
             ].map(async (file) => {
-              dir.set(file, await load_external_file("/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/" + file));
+              dir.set(file, await load_external_file("/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/" + file).finally(() => postMessage({downloaded: file})));
             });
             await Promise.all(files);
             return dir;

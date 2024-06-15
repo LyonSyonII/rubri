@@ -69,13 +69,15 @@
 	const button = document.body.querySelector<HTMLButtonElement>("button")!;
 	const liveEdit = document.body.querySelector<HTMLInputElement>("#live-edit")!;
 	
-	input.value = "Loading...";
+	input.value = "Downloading:";
 	input.placeholder = "Write your code...";
 	input.readOnly = true;
 	const interpreter = new Interpreter();
+	interpreter.onAssetDownloaded(lib => input.value += `\n${lib}`);
 	interpreter.onLoaded(() => {
 		input.readOnly = false;
 		input.value = 'println!("Hello Rubri!");';
+		interpreter.run(input.value);
 	});
 	interpreter.onRun(() => {
 		output.value = "Running...";
@@ -90,11 +92,9 @@
 		if (!liveEdit.checked) {
 			return;
 		}
-		console.log(input.value);
 		interpreter.run(input.value || "");
 	});
 	button.addEventListener("click", async () => {
-		console.log(input.value);
 		interpreter.run(input.value || "");
 	})
 
