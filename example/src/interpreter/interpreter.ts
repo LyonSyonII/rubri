@@ -2,23 +2,25 @@ import { Fd, File, Directory, PreopenDirectory, WASI, strace, OpenDirectory } fr
 
 export async function initInterpreter(): Promise<Interpreter> {
   console.time("init");
-
-  const stdin = new Stdio();
-  const stdout = new Stdio();
-  const stderr = new Stdio();
+  
+  // Build the filesystem needed for Miri to work
+  // stdin, stdout and stderr all point to the same buffer
+  const out: Uint8Array[] = [];
+  const stdin = new Stdio(out);
+  const stdout = new Stdio(out);
+  const stderr = new Stdio(out);
   const tmp = new PreopenDirectory("/tmp", []);
   const root = new PreopenDirectory("/", [
     ["main.rs", new File([])],
   ]);
-
   const [miri, sysroot] = await Promise.all([
     WebAssembly.compileStreaming(cached_or_fetch("/wasm-rustc/bin/miri.opt.1718474653.wasm").finally(() => postMessage({downloaded: "miri.opt.1718474653.wasm"}))),
     buildSysroot()
   ]);
-  
   const fds: [Stdio, Stdio, Stdio, OpenDirectory, OpenDirectory, OpenDirectory] = [stdin, stdout, stderr, tmp, sysroot, root];
-
+  
   const env: string[] = [];
+  // Disable all Miri checks and force color output for printing to the terminal
   const args = [
     "miri", 
     "--sysroot",
@@ -36,7 +38,8 @@ export async function initInterpreter(): Promise<Interpreter> {
      "-Zmiri-disable-validation",
      "-Zmir-emit-retag=false",
      "-Zmiri-disable-isolation",
-     "-Zmiri-panic-on-unsupported"
+     "-Zmiri-panic-on-unsupported",
+     "--color=always"
   ];
   const wasi = new WASI(args, env, fds, { debug: false });
   
@@ -70,13 +73,15 @@ class Interpreter {
     this.next_thread_id = 1;
   }
 
-  public async run(code: string): Promise<string> {
+  async run(code: string): Promise<string> {
     this.stdin.clear();
     this.stdout.clear();
     this.stderr.clear();
-
+    
+    // Set the contents of the `main.rs` file to the new code
     this.fds[5].dir.get_file("main.rs")!.data = new TextEncoder().encode(`fn main() {\n${code}\n}`);
     
+    // Instantiate Miri
     const inst = await WebAssembly.instantiate(this.miri, {
       "env": { memory: new WebAssembly.Memory({ initial: 256, maximum: 1024 * 4, shared: false }) },
       "wasi": {
@@ -91,27 +96,30 @@ class Interpreter {
       },
       "wasi_snapshot_preview1": strace(this.wasi.wasiImport, ["fd_prestat_get"]),
     });
-
+    
+    // Execute Miri
     try {
       console.time("miri execution");
       // @ts-ignore
       this.wasi.start(inst);
       console.timeEnd("miri execution");
     } catch (e: any) {
-      return this.stderr.text() + this.stdout.text() || e.message;
+      return this.stdout.text() || e.message;
     };
     
-    console.log({ stdout: this.stdout.text(), stderr: this.stderr.text(), stdin: this.stdin });
-    return this.stdout.text() + this.stderr.text();
+    return this.stdout.text();
   }
 }
 
+/**
+ * Capture all the output into a buffer to return it later.
+ */
 class Stdio extends Fd {
   private out: Uint8Array[]
   
-  constructor() {
+  constructor(out: Uint8Array[] = []) {
     super();
-    this.out = [];
+    this.out = out;
   }
 
   fd_write(data: Uint8Array): { ret: number, nwritten: number } {
@@ -120,7 +128,7 @@ class Stdio extends Fd {
   }
 
   clear() {
-    this.out = [];
+    this.out.length = 0;
   }
 
   text(): string {
@@ -140,6 +148,8 @@ async function load_external_file(path: string) {
 }
 
 async function cached_or_fetch(path: string) {
+  // Downloads or caches the file from `path`
+  // Files of more than 10MB aren't cached by fetch, so it must be done manually
   path = import.meta.env.BASE_URL + path;
   try {
     caches
@@ -159,6 +169,7 @@ async function cached_or_fetch(path: string) {
 }
 
 async function buildSysroot(): Promise<PreopenDirectory> {
+  // Create SYSROOT directory for Miri
   return new PreopenDirectory("/sysroot", [
     ["lib", new Directory([
       ["rustlib", new Directory([
@@ -197,6 +208,7 @@ async function buildSysroot(): Promise<PreopenDirectory> {
               "libunicode_width-19a0dcd589fa0877.rlib",
               "libunwind-747b693f90af9445.rlib",
             ].map(async (file) => {
+              // Load libraries from "/public/wasm-rustc"
               dir.set(file, await load_external_file("/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/" + file).finally(() => postMessage({downloaded: file})));
             });
             await Promise.all(files);

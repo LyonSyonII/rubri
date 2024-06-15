@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.7.0",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
     "astro": "^4.10.2",
     "astro-compress": "^2.2.28",
     "astro-compressor": "^0.4.1",

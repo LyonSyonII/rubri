@@ -12,14 +12,17 @@
 	</head>
 	<body>
 		<div id="grid">
-			<h1><span>Ru</span>st <span>Br</span>owser <span>I</span>nterpreter</h1>
+			<div>
+				<h1><span>Ru</span>st <span>Br</span>owser <span>I</span>nterpreter</h1>
+				<b><a href="https://github.com/lyonsyonii/rubri" target="_blank">See on Github</a></b>
+			</div>
 			<div id="live-edit-wrapper">
 				<input id="live-edit" type="checkbox" checked />
 				<label for="live-edit">Live Edit</label>
 			</div>
 			<textarea id="input" spellcheck="false" />
 			<button>RUN</button>
-			<textarea id="output" readonly spellcheck="false" />
+			<div id="terminal" />
 		</div>
 	</body>
 </html>
@@ -44,15 +47,11 @@
 		font-weight: 700;
 		font-size: x-large;
 	}
-	textarea {
-		font-size: x-large;
-	}
 	textarea#input {
+		font-size: x-large;
 		resize: none;
 	}
-	textarea#output {
-		resize: none;
-	}
+	#terminal {}
 	#live-edit, #live-edit-wrapper {
 		user-select: none;
 	}
@@ -63,39 +62,75 @@
 
 <script>
 	import { Interpreter } from "../interpreter";
+	import "@xterm/xterm/css/xterm.css";
+	import { Terminal } from "@xterm/xterm";
+	import { FitAddon } from "@xterm/addon-fit";
 
 	const input = document.body.querySelector<HTMLTextAreaElement>("textarea#input")!;
-	const output = document.body.querySelector<HTMLTextAreaElement>("textarea#output")!;
 	const button = document.body.querySelector<HTMLButtonElement>("button")!;
 	const liveEdit = document.body.querySelector<HTMLInputElement>("#live-edit")!;
 	
+	// Terminal Initialization (not needed)
+	const termElement = document.getElementById("terminal")!;
+	const terminal = new Terminal({
+		convertEol: true,
+		disableStdin: true,
+		fontFamily: "monospace",
+		fontSize: 18,
+		rows: 17
+	});
+	const fitAddon = new FitAddon();
+	terminal.loadAddon(fitAddon);
+	terminal.open(termElement);
+	// @ts-ignore
+	termElement.firstChild.style.padding = "1rem";
+	// @ts-ignore
+	termElement.firstChild.firstChild.style.borderRadius = "0.25rem";
+	fitAddon.fit();
+	
+	// 
 	input.value = "Downloading:";
 	input.placeholder = "Write your code...";
 	input.readOnly = true;
+
+	// Interpreter initialization
 	const interpreter = new Interpreter();
+
+	// Add libraries downloaded to list
 	interpreter.onAssetDownloaded(lib => input.value += `\n${lib}`);
+
+	// When Interpreter has finished loading, add default code
 	interpreter.onLoaded(() => {
 		input.readOnly = false;
-		input.value = 'println!("Hello Rubri!");';
+		input.value = 'println!("Hello from WASM!");';
 		interpreter.run(input.value);
 	});
+
+	// When Interpreter is running disable the "Run" button
 	interpreter.onRun(() => {
-		output.value = "Running...";
 		button.disabled = true;
-	})
+		terminal.reset();
+		terminal.write("Running...");
+	});
+
+	// When result is received from a running Interpreter write it to the terminal
 	interpreter.onResult(result => {
-		output.value = result;
+		terminal.reset();
+		terminal.write(result);
 		button.disabled = false;
-	})
-	
+	});
+
+	// Run the Interpreter when on "Live Edit" or the "Run" button is clicked
 	input.addEventListener("input", async () => {
-		if (!liveEdit.checked) {
+		if (!liveEdit.checked || button.disabled) {
 			return;
 		}
 		interpreter.run(input.value || "");
 	});
 	button.addEventListener("click", async () => {
+		if (button.disabled) {
+			return;
+		}
 		interpreter.run(input.value || "");
-	})
-
+	});
 </script>
