@@ -140,6 +140,7 @@ async function load_external_file(path: string) {
 }
 
 async function cached_or_fetch(path: string) {
+  path = import.meta.env.BASE_URL + path;
   try {
     caches
   } catch (e) {

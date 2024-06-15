@@ -3,18 +3,17 @@ export class Interpreter {
   private onrun: (() => void)[];
   private onresult: ((result: string) => void)[]
   private onloaded: (() => void)[];
-  private running: boolean
   
   constructor() {
+    // base.pathname = import.meta.env.BASE_URL + base.pathname;
+    console.log({url: import.meta.url});
     this.worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
     this.onrun = [];
     this.onresult = [];
     this.onloaded = [];
-    this.running = false;
 
     this.worker.onmessage = ({ data }: { data: { loaded?: boolean, result?: string } } ) => {
       if (data.result !== undefined) {
-        this.running = false;
         for (const ev of this.onresult) {
           ev(data.result)
         }
@@ -27,8 +26,6 @@ export class Interpreter {
   }
 
   public run(code: string) {
-    // this.worker.terminate()
-    this.running = true;
     for (const ev of this.onrun) {
       ev()
     }
@@ -45,9 +42,5 @@ export class Interpreter {
 
   public onLoaded(onloaded: () => void) {
     this.onloaded.push(onloaded);
-  }
-
-  public isRunning(): boolean {
-    return this.running;
   }
 }
