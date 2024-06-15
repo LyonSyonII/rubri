@@ -5,7 +5,7 @@ import compressor from "astro-compressor";
 
 // https://astro.build/config
 export default defineConfig({
-  base: "rubri",
+  base: "/rubri",
   integrations: [compress(), compressor({
     brotli: false,
     fileExtensions: [".css", ".js", ".html", ".xml", ".cjs", ".mjs", ".svg", ".txt"]
