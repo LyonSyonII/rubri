@@ -1,0 +1,1 @@
+Rust favicon from https://foundation.rust-lang.org/policies/logo-policy-and-media-guide/
