@@ -51,7 +51,9 @@
 		font-size: x-large;
 		resize: none;
 	}
-	#terminal {}
+	#terminal {
+		white-space: pre-wrap;
+	}
 	#live-edit, #live-edit-wrapper {
 		user-select: none;
 	}
@@ -62,34 +64,15 @@
 
 <script>
 	import { Interpreter } from "../interpreter";
-	import "@xterm/xterm/css/xterm.css";
-	import { Terminal } from "@xterm/xterm";
-	import { FitAddon } from "@xterm/addon-fit";
-
+	import { AnsiUp } from "ansi_up";
+	
 	const input = document.body.querySelector<HTMLTextAreaElement>("textarea#input")!;
 	const button = document.body.querySelector<HTMLButtonElement>("button")!;
 	const liveEdit = document.body.querySelector<HTMLInputElement>("#live-edit")!;
-	
-	// Terminal Initialization (not needed)
 	const termElement = document.getElementById("terminal")!;
-	const terminal = new Terminal({
-		convertEol: true,
-		disableStdin: true,
-		fontFamily: "monospace",
-		fontSize: 18,
-		rows: 17
-	});
-	const fitAddon = new FitAddon();
-	terminal.loadAddon(fitAddon);
-	terminal.open(termElement);
-	// @ts-ignore
-	termElement.firstChild.style.padding = "1rem";
-	// @ts-ignore
-	termElement.firstChild.firstChild.style.borderRadius = "0.25rem";
-	fitAddon.fit();
-	
-	// 
-	input.value = "Downloading:";
+
+	const ansiUp = new AnsiUp();
+	input.value = "Downloading (Can take a while):";
 	input.placeholder = "Write your code...";
 	input.readOnly = true;
 
@@ -109,14 +92,12 @@
 	// When Interpreter is running disable the "Run" button
 	interpreter.onRun(() => {
 		button.disabled = true;
-		terminal.reset();
-		terminal.write("Running...");
+		termElement.innerHTML = "Running...";
 	});
 
 	// When result is received from a running Interpreter write it to the terminal
 	interpreter.onResult(result => {
-		terminal.reset();
-		terminal.write(result);
+		termElement.innerHTML = ansiUp.ansi_to_html(result.replaceAll("\n", "\r"));
 		button.disabled = false;
 	});
 
