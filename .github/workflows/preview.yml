@@ -1,0 +1,40 @@
+name: 🔂 Surge PR Preview
+
+on: 
+    pull_request:
+    push:
+        branches: [testing]
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # allow surge-preview to create/update PR comments
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install dependencies and Build
+        run: | 
+          cd example
+          pnpm install
+          pnpm build
+      - uses: afc163/surge-preview@v1
+        id: preview_step
+        with:
+          github_token: ${{ github.token }}
+          surge_token: ${{ secrets.SURGE_TOKEN }}
+          dist: example/dist
+          teardown: true
+          failOnError: true
+          build: |
+            bash -c "echo Done"
+      - name: Get the preview_url
+        run: echo "url => ${{ steps.preview_step.outputs.preview_url }}"
