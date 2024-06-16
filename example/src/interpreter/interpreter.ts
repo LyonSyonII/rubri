@@ -39,7 +39,7 @@ export async function initInterpreter(): Promise<Interpreter> {
      "-Zmir-emit-retag=false",
      "-Zmiri-disable-isolation",
      "-Zmiri-panic-on-unsupported",
-     "--color=always"
+     "--color=always",
   ];
   const wasi = new WASI(args, env, fds, { debug: false });
   
