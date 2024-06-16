@@ -39,7 +39,7 @@ export async function initInterpreter(): Promise<Interpreter> {
      "-Zmir-emit-retag=false",
      "-Zmiri-disable-isolation",
      "-Zmiri-panic-on-unsupported",
-     "--color=always"
+     "--color=always",
   ];
   const wasi = new WASI(args, env, fds, { debug: false });
   
@@ -150,7 +150,10 @@ async function load_external_file(path: string) {
 async function cached_or_fetch(path: string) {
   // Downloads or caches the file from `path`
   // Files of more than 10MB aren't cached by fetch, so it must be done manually
-  path = import.meta.env.BASE_URL + path;
+  const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
+  console.log({base, url: import.meta.url, path});
+  
+  path = base + path;
   try {
     caches
   } catch (e) {

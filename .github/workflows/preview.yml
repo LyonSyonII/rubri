@@ -20,10 +20,11 @@ jobs:
         with:
           node-version: latest
           cache: 'pnpm'
-          cache-dependency-path: frontend/pnpm-lock.yaml
+          cache-dependency-path: example/pnpm-lock.yaml
       - name: Install dependencies and Build
         run: | 
           cd example
+          mv astro.config.preview.mjs astro.config.mjs
           pnpm install
           pnpm build
       - uses: afc163/surge-preview@v1
