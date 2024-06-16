@@ -21,6 +21,7 @@ export function setupEditor(input: HTMLTextAreaElement) {
 					start -= 1;
 				}
 				start >= 0 && input.setRangeText("", start, end, "end");
+        input.dispatchEvent(new Event("input"))
 			}
 		}
 	})
