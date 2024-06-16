@@ -24,6 +24,7 @@ jobs:
       - name: Install dependencies and Build
         run: | 
           cd example
+          sed -i '/base: "\/rubri",/d' ./astro.config.mjs
           pnpm install
           pnpm build
       - uses: afc163/surge-preview@v1
