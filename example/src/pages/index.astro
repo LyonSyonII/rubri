@@ -20,6 +20,8 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 			<div id="live-edit-wrapper">
 				<input id="live-edit" type="checkbox" checked />
 				<label for="live-edit">Live Edit</label>
+				<input id="print-last" type="checkbox" checked />
+				<label for="print-last">Print last expression</label>
 			</div>
 			<textarea id="input" spellcheck="false" />
 			<button>RUN</button>
@@ -69,8 +71,9 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 	import { AnsiUp } from "ansi_up";
 	
 	const input = document.body.querySelector<HTMLTextAreaElement>("textarea#input")!;
-	const button = document.body.querySelector<HTMLButtonElement>("button")!;
+	const runButton = document.body.querySelector<HTMLButtonElement>("button")!;
 	const liveEdit = document.body.querySelector<HTMLInputElement>("#live-edit")!;
+	const printLast = document.body.querySelector<HTMLInputElement>("#print-last")!;
 	const termElement = document.getElementById("terminal")!;
 
 	const ansiUp = new AnsiUp();
@@ -89,38 +92,39 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 	interpreter.onLoaded(() => {
 		input.readOnly = false;
 		input.value = 'println!("Hello from WASM!");';
-		interpreter.run(input.value);
+		runButton.click();
+		// interpreter.run(input.value);
 	});
 
 	// When Interpreter is running disable the "Run" button
 	interpreter.onRun(() => {
-		button.disabled = true;
+		runButton.disabled = true;
 		termElement.innerHTML = "Running...";
 	});
 
 	// When result is received from a running Interpreter write it to the terminal
 	interpreter.onResult(result => {
 		termElement.innerHTML = ansiUp.ansi_to_html(result.replaceAll("\n", "\r"));
-		button.disabled = false;
+		runButton.disabled = false;
 		if (lastInput && lastInput !== input.value) {
 			input.dispatchEvent(new Event("input"));
 		}
 	});
-
-	setupEditor(input);
+	
+	setupEditor(input, runButton);
 
 	// Run the Interpreter when on "Live Edit" or the "Run" button is clicked
 	input.addEventListener("input", async () => {
-		if (!liveEdit.checked || button.disabled) {
+		if (!liveEdit.checked || runButton.disabled) {
 			return;
 		}
 		lastInput = input.value;
-		interpreter.run(input.value || "");
+		interpreter.run(input.value || "", printLast.checked);
 	});
-	button.addEventListener("click", async () => {
-		if (button.disabled) {
+	runButton.addEventListener("click", async () => {
+		if (runButton.disabled) {
 			return;
 		}
-		interpreter.run(input.value || "");
+		interpreter.run(input.value || "", printLast.checked)
 	});
 </script>

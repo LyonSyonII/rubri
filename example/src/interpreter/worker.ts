@@ -6,8 +6,11 @@ import { initInterpreter } from "./interpreter";
   
   // When code is received run it
   addEventListener("message", async (event) => {
-    const code = event.data;
-    const result = await interpreter.run(code);
+    const {
+      code, 
+      printLast
+    } = event.data;
+    const result = await interpreter.run(code, printLast);
     postMessage({ result });
   });
   

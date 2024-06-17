@@ -73,13 +73,17 @@ class Interpreter {
     this.next_thread_id = 1;
   }
 
-  async run(code: string): Promise<string> {
+  async run(code: string, printLast: boolean = false): Promise<string> {
     this.stdin.clear();
     this.stdout.clear();
     this.stderr.clear();
     
     // Set the contents of the `main.rs` file to the new code
-    this.fds[5].dir.get_file("main.rs")!.data = new TextEncoder().encode(`fn main() {\n${code}\n}`);
+    code = `let _code = (|| {\n${code}\n})();`;
+    if (printLast) {
+      code += '\nif std::any::Any::type_id(&_code) != std::any::TypeId::of::<()>() { println!("{_code:?}") }';
+    }
+    this.fds[5].dir.get_file("main.rs")!.data = encode(`fn main() {\n${code}\n}`);
     
     // Instantiate Miri
     const inst = await WebAssembly.instantiate(this.miri, {
@@ -219,4 +223,12 @@ async function buildSysroot(): Promise<PreopenDirectory> {
       ])],
     ])],
   ])
+}
+
+function encode(text: string): Uint8Array {
+  return new TextEncoder().encode(text);
+}
+
+function file(name: string, text: string): [string, File] {
+  return [name, new File(encode(text))]
 }

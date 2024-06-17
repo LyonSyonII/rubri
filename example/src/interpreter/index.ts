@@ -57,11 +57,11 @@ export class Interpreter {
    * 
    * @param code Code that will be interpreted.
    */
-  public run(code: string) {
+  public run(code: string, printLast: boolean = false) {
     for (const ev of this.onrun) {
       ev()
     }
-    this.worker.postMessage(code);
+    this.worker.postMessage({code, printLast});
   }
   
   /**
