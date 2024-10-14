@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.7.0",
-    "astro": "^4.10.2",
+    "astro": "^4.16.1",
     "astro-compress": "^2.2.28",
     "astro-compressor": "^0.4.1",
     "typescript": "^5.4.5"
