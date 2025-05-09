@@ -11,7 +11,7 @@ export async function initInterpreter(): Promise<Interpreter> {
   const stderr = new Stdio(out);
   const tmp = new PreopenDirectory("/tmp", []);
   const root = new PreopenDirectory("/", [
-    ["main.rs", new File([])],
+    ["main.rs", new File(new Uint8Array())],
   ]);
   const [miri, sysroot] = await Promise.all([
     WebAssembly.compileStreaming(cached_or_fetch("/wasm-rustc/bin/miri.opt.1718474653.wasm").finally(() => postMessage({downloaded: "miri.opt.1718474653.wasm"}))),

@@ -466,7 +466,7 @@ export class File extends Inode {
   readonly: boolean;
 
   constructor(
-    data: ArrayBuffer | SharedArrayBuffer | Uint8Array | Array<number>,
+    data: ArrayBuffer | Uint8Array,
     options?: Partial<{
       readonly: boolean;
     }>,
@@ -685,7 +685,7 @@ export class Directory extends Inode {
     debug.log("create", path);
     let new_child;
     if (!is_dir) {
-      new_child = new File(new ArrayBuffer(0));
+      new_child = new File(new ArrayBuffer());
     } else {
       new_child = new Directory(new Map());
     }

@@ -22,10 +22,17 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 				<label for="live-edit">Live Edit</label>
 				<input id="print-last" type="checkbox" checked />
 				<label for="print-last">Print last expression</label>
+				<br><br>
+				<button id="button-run">
+					<b>RUN</b>
+					<svg class="bwriTBp9mt3lT3cYfTnK" height="14" viewBox="8 4 10 16" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"></path></svg>
+				</button>
+				<b> Or Ctrl+Enter</b>
 			</div>
 			<textarea id="input" spellcheck="false" />
-			<button>RUN</button>
-			<div id="terminal" />
+			<div id="terminal">
+				<div id="terminal-inner" />
+			</div>
 		</div>
 	</body>
 </html>
@@ -42,19 +49,41 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 		margin-left: 1rem;
 		margin-right: 1rem;
 		display: grid;
-		grid-template-rows: min-content min-content 1fr 5rem 1fr;
+		grid-template-rows: min-content min-content 1fr 3rem 1fr;
 		gap: .5rem;
 	}
-	button {
+	#button-run {
+		padding-left: 1.25em;
+		padding-right: 1.25em;
+		padding-top: .5em;
+		padding-bottom: .5em;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5em;
+		background: white;
+		border-color: #676774;
+		border-width: 1px;
+		border-style: solid;
+		border-radius: 2px;
+		cursor: pointer;
+	}
+	#button-run[disabled] {
+		opacity: 0.5;
+	}
+	#button-run > b {
 		font-family: inherit;
 		font-weight: 700;
-		font-size: x-large;
+		font-size: large;
 	}
 	textarea#input {
 		font-size: x-large;
 		resize: none;
 	}
 	#terminal {
+		max-height: 100%;
+		overflow: scroll;
+	}
+	#terminal-inner {
 		white-space: pre-wrap;
 	}
 	#live-edit, #live-edit-wrapper {
@@ -75,6 +104,7 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 	const liveEdit = document.body.querySelector<HTMLInputElement>("#live-edit")!;
 	const printLast = document.body.querySelector<HTMLInputElement>("#print-last")!;
 	const termElement = document.getElementById("terminal")!;
+	const termInnerElement = document.getElementById("terminal-inner")!;
 
 	const ansiUp = new AnsiUp();
 	input.value = "Downloading (Can take a while):";
@@ -99,12 +129,12 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 	// When Interpreter is running disable the "Run" button
 	interpreter.onRun(() => {
 		runButton.disabled = true;
-		termElement.innerHTML = "Running...";
+		termInnerElement.innerHTML = "Running...";
 	});
 
 	// When result is received from a running Interpreter write it to the terminal
 	interpreter.onResult(result => {
-		termElement.innerHTML = ansiUp.ansi_to_html(result.replaceAll("\n", "\r"));
+		termInnerElement.innerHTML = ansiUp.ansi_to_html(result.replaceAll("\n", "\r"));
 		runButton.disabled = false;
 		if (lastInput && lastInput !== input.value) {
 			input.dispatchEvent(new Event("input"));
