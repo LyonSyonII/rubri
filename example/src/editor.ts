@@ -1,4 +1,3 @@
-import type { Compartment, Text } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 
 export async function setupEditor(element: HTMLElement, args: LoadCodemirrorArgs): Promise<CodeMirror> {
@@ -21,12 +20,13 @@ export type LoadCodemirrorArgs = {
 }
 
 async function loadCodemirror({onRun, onInput}: LoadCodemirrorArgs): Promise<CodeMirror> {
-	const { closeBrackets, closeBracketsKeymap } = await import("@codemirror/autocomplete");
-	const { defaultKeymap, history, historyKeymap, insertTab } = await import(
+	const { closeBrackets, autocompletion, completionKeymap, closeBracketsKeymap } = await import("@codemirror/autocomplete");
+	const { history, insertTab, defaultKeymap, historyKeymap, standardKeymap } = await import(
 		"@codemirror/commands"
 	);
+	const { search, searchKeymap } = await import("@codemirror/search");
 	const { rust } = await import("@codemirror/lang-rust");
-	const { bracketMatching, foldKeymap, indentOnInput } = await import("@codemirror/language");
+	const { bracketMatching, indentOnInput, foldKeymap } = await import("@codemirror/language");
 	const { Compartment, EditorState, Prec } = await import("@codemirror/state");
 	const {
 		EditorView,
@@ -35,22 +35,32 @@ async function loadCodemirror({onRun, onInput}: LoadCodemirrorArgs): Promise<Cod
 		keymap,
 		lineNumbers,
 		placeholder,
+		drawSelection,
+		scrollPastEnd,
 	} = await import("@codemirror/view");
 
 	const basicSetup = [
-		lineNumbers(),
-		highlightActiveLineGutter(),
-		history(),
-		EditorState.allowMultipleSelections.of(true),
-		indentOnInput(),
+		autocompletion(),
 		bracketMatching(),
 		closeBrackets(),
+		scrollPastEnd(),
+		drawSelection(),
+		search(),
 		highlightActiveLine(),
+		highlightActiveLineGutter(),
+		history(),
+		indentOnInput(),
+		lineNumbers(),
+		EditorState.allowMultipleSelections.of(true),
 		keymap.of([
-			...closeBracketsKeymap,
+			...standardKeymap,
 			...defaultKeymap.filter((k) => k.key !== "Mod-Enter" && k.key !== "Shift-Enter"),
-			...historyKeymap,
 			...foldKeymap,
+			...historyKeymap,
+			...searchKeymap,
+			...completionKeymap,
+			...closeBracketsKeymap,
+			// ...lintKeymap,
 		]),
 	];
 
@@ -61,7 +71,7 @@ async function loadCodemirror({onRun, onInput}: LoadCodemirrorArgs): Promise<Cod
 		keymap.of([
 			{
 				key: "Shift-Enter",
-				run: (e) => {
+				run: () => {
 					onRun();
 					return true;
 				},
@@ -70,7 +80,7 @@ async function loadCodemirror({onRun, onInput}: LoadCodemirrorArgs): Promise<Cod
 			},
 			{
 				key: "Mod-Enter",
-				run: (e) => {
+				run: () => {
 					onRun();
 					return true;
 				},
@@ -82,7 +92,7 @@ async function loadCodemirror({onRun, onInput}: LoadCodemirrorArgs): Promise<Cod
 				run: insertTab,
 				stopPropagation: true,
 				preventDefault: true,
-			},
+			}
 		]),
 	);
 
@@ -92,9 +102,9 @@ async function loadCodemirror({onRun, onInput}: LoadCodemirrorArgs): Promise<Cod
 		state: EditorState.create({
 			doc: 'println!("Hello WASM!")',
 			extensions: [
-				rust(),
 				basicSetup,
 				runKeymap,
+				rust(),
 				placeholder("Write your code..."),
 				themeCompartment.of(await importTheme(document.documentElement.dataset.theme || "light")),
 				readonlyCompartment.of(EditorState.readOnly.of(true)),

@@ -38,11 +38,24 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 </html>
 
 <style>
+	:root {
+		--font-size: 16px;
+		--editor-font-size: calc(var(--font-size) + 2px);
+	}
 	body {
+		font-family: monospace;
+		font-size: var(--font-size);
 		height: 100vh;
-		font-family: 'Courier New', Courier, monospace;
 		margin: 0;
 		padding: 0;
+	}
+	b {
+		font-family: monospace;
+		font-weight: 700;
+		font-size: var(--font-size);
+	}
+	span {
+		text-decoration: underline;
 	}
 	#grid {
 		height: calc(100% - 1rem);
@@ -51,6 +64,9 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 		display: grid;
 		grid-template-rows: min-content min-content 1fr 1fr;
 		gap: .5rem;
+	}
+	#live-edit, #live-edit-wrapper {
+		user-select: none;
 	}
 	#button-run {
 		padding-left: 1.25em;
@@ -66,30 +82,30 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 		border-style: solid;
 		border-radius: 2px;
 		cursor: pointer;
+
+		font-family: monospace;
+		font-weight: 700;
+		font-size: var(--font-size);
 	}
 	#button-run[disabled] {
 		opacity: 0.5;
 	}
-	#button-run > b {
-		font-family: inherit;
-		font-weight: 700;
-		font-size: large;
-	}
 	textarea#input {
-		font-size: x-large;
+		font-size: calc(var(--font-size) + 2px);
 		resize: none;
+	}
+	:global(.cm-editor) {
+		overflow: scroll;
+	}
+	:global(.cm-editor > *) {
+		font-size: calc(var(--font-size) + 2px);
+		font-family: monospace;
 	}
 	#terminal {
 		overflow: scroll;
 	}
 	#terminal-inner {
 		white-space: pre-wrap;
-	}
-	#live-edit, #live-edit-wrapper {
-		user-select: none;
-	}
-	span {
-		text-decoration: underline;
 	}
 </style>
 
