@@ -13,15 +13,20 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 	</head>
 	<body>
 		<div id="grid">
-			<div>
+			<hgroup>
 				<h1><span>Ru</span>st <span>Br</span>owser <span>I</span>nterpreter</h1>
-				<b><a href="https://github.com/lyonsyonii/rubri" target="_blank">See on Github</a></b>
-			</div>
+				<p><a href="https://github.com/lyonsyonii/rubri" target="_blank">See on Github</a></p>
+			</hgroup>
 			<div id="live-edit-wrapper">
 				<input id="live-edit" type="checkbox" checked />
 				<label for="live-edit">Live Edit</label>
+
 				<input id="print-last" type="checkbox" checked />
 				<label for="print-last">Print last expression</label>
+
+				<input id="simple-editor" type="checkbox" />
+				<label for="simple-editor">Simple Editor</label>
+
 				<br><br>
 				<button id="button-run">
 					<b>RUN</b>
@@ -29,10 +34,8 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 				</button>
 				<b> Or Ctrl+Enter</b>
 			</div>
-			<textarea id="input" spellcheck="false" placeholder="Write your code..." readonly />
-			<div id="terminal">
-				<div id="terminal-inner" />
-			</div>
+			<textarea id="editor" spellcheck="false" placeholder="Write your code..." readonly />
+			<output id="terminal" />
 		</div>
 	</body>
 </html>
@@ -90,7 +93,7 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 	#button-run[disabled] {
 		opacity: 0.5;
 	}
-	textarea#input {
+	textarea#editor {
 		font-size: calc(var(--font-size) + 2px);
 		resize: none;
 	}
@@ -101,10 +104,8 @@ const base = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL;
 		font-size: calc(var(--font-size) + 2px);
 		font-family: monospace;
 	}
-	#terminal {
+	output#terminal {
 		overflow: scroll;
-	}
-	#terminal-inner {
 		white-space: pre-wrap;
 	}
 </style>

@@ -1,25 +1,91 @@
-import type { EditorView } from "@codemirror/view";
-
-export async function setupEditor(element: HTMLElement, args: LoadCodemirrorArgs): Promise<CodeMirror> {
-	const codemirror = await loadCodemirror(args);
-	element.replaceWith(codemirror.editor.dom);
-	return codemirror;
-}
-
-export type CodeMirror = {
-	setReadonly: (readonly: boolean) => void;
-	setTheme: (theme: "light" | "dark") => void;
-	setValue: (value: string) => void;
-	getValue: () => string;
-	editor: EditorView
-}
-
-export type LoadCodemirrorArgs = {
+export type LoadEditorArgs = {
+	simple: boolean,
 	onRun: () => void,
 	onInput: (code: string) => void,
 }
 
-async function loadCodemirror({onRun, onInput}: LoadCodemirrorArgs): Promise<CodeMirror> {
+
+export type Editor = {
+	setReadonly: (readonly: boolean) => void;
+	setTheme: (theme: "light" | "dark") => void;
+	setValue: (value: string) => void;
+	getValue: () => string;
+}
+
+export async function setupEditor(element: HTMLTextAreaElement, args: LoadEditorArgs): Promise<Editor> {
+	if (args.simple) {
+		return loadSimpleEditor(element, args);
+	} else {
+		return await loadCodemirror(element, args);
+	}
+}
+
+export function loadSimpleEditor(input: HTMLTextAreaElement, args: LoadEditorArgs): Editor {
+	input.addEventListener("input", function() {
+		args.onInput(this.value)
+	});
+	input.addEventListener("keydown", (e) => {
+		switch (e.key) {
+			case "Tab": {
+				e.preventDefault();
+				e.stopPropagation();
+				const [start, end] = [input.selectionStart, input.selectionEnd];
+				input.setRangeText("  ", start, end, "end");
+				break;
+			}
+
+			case "Backspace": {
+				let [start, end] = [input.selectionStart, input.selectionEnd];
+				if (start !== end) {
+					return;
+				}
+				if (input.value.substring(start-2, start) !== "  ") {
+					return;
+				}
+				e.preventDefault();
+				e.stopPropagation();
+				start -= 2;
+				start >= 0 && input.setRangeText("", start, end, "end");
+        input.dispatchEvent(new Event("input"))
+				break;
+			}
+		
+			case "Enter": {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.ctrlKey) {
+					args.onRun();
+				} else {
+					// TODO: Add indentation based on previous line
+					let indent = 0;
+					for (let i = input.selectionEnd-1; i > 0; i--) {
+						if (input.value[i] === "\n") break;
+						else if (input.value[i] === " ") indent += 1;
+						else indent = 0;
+					}
+					console.log({indent, start: input.selectionStart, end: input.selectionEnd});
+					input.setRangeText("\n" + " ".repeat(indent), input.selectionStart, input.selectionEnd, "end");
+				}
+				input.dispatchEvent(new Event("input"));
+				break;
+			}
+		}
+	})
+	return {
+		setReadonly(readonly) {
+			input.readOnly = readonly;
+		},
+		setTheme() {},
+		setValue(value) {
+			input.value = value;
+		},
+		getValue() {
+			return input.value;
+		},
+	};
+}
+
+async function loadCodemirror(element: HTMLElement, { onRun, onInput }: LoadEditorArgs): Promise<Editor> {
 	const { closeBrackets, autocompletion, completionKeymap, closeBracketsKeymap } = await import("@codemirror/autocomplete");
 	const { history, insertTab, defaultKeymap, historyKeymap, standardKeymap } = await import(
 		"@codemirror/commands"
@@ -119,6 +185,7 @@ async function loadCodemirror({onRun, onInput}: LoadCodemirrorArgs): Promise<Cod
 	});
 	// Can't disable outline in any other way
 	editor.dom.style.outline = "none";
+	element.replaceWith(editor.dom);
 
 	return {
 		setReadonly: (v) => {
@@ -139,6 +206,5 @@ async function loadCodemirror({onRun, onInput}: LoadCodemirrorArgs): Promise<Cod
 		getValue() {
 			return editor.state.doc.toString();
 		},
-		editor
 	};
 }
