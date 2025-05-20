@@ -56,14 +56,12 @@ export function loadSimpleEditor(input: HTMLTextAreaElement, args: LoadEditorArg
 				if (e.ctrlKey) {
 					args.onRun();
 				} else {
-					// TODO: Add indentation based on previous line
 					let indent = 0;
 					for (let i = input.selectionEnd-1; i > 0; i--) {
 						if (input.value[i] === "\n") break;
 						else if (input.value[i] === " ") indent += 1;
 						else indent = 0;
 					}
-					console.log({indent, start: input.selectionStart, end: input.selectionEnd});
 					input.setRangeText("\n" + " ".repeat(indent), input.selectionStart, input.selectionEnd, "end");
 				}
 				input.dispatchEvent(new Event("input"));
