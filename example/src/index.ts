@@ -23,6 +23,7 @@ interpreter.onRun(() => {
 // Setup editor
 simpleEditor.checked = localStorage.getItem("prefers-simple-editor") !== null;
 let lastInput = "";
+console.log("loading editor");
 const editor = await setupEditor(document.getElementById("editor") as HTMLTextAreaElement, {
   simple: simpleEditor.checked,
   // Run the Interpreter when on "Live Edit" or the "Run" button is clicked

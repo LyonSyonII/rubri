@@ -1,3 +1,5 @@
+import { importTheme } from "./codemirror-themes";
+
 export type LoadEditorArgs = {
 	simple: boolean,
 	onRun: () => void,
@@ -83,7 +85,7 @@ export function loadSimpleEditor(input: HTMLTextAreaElement, args: LoadEditorArg
 	};
 }
 
-async function loadCodemirror(element: HTMLElement, { onRun, onInput }: LoadEditorArgs): Promise<Editor> {
+async function loadCodemirror(element: HTMLElement, { onRun, onInput }: LoadEditorArgs): Promise<Editor> {	
 	const { closeBrackets, autocompletion, completionKeymap, closeBracketsKeymap } = await import("@codemirror/autocomplete");
 	const { history, insertTab, defaultKeymap, historyKeymap, standardKeymap } = await import(
 		"@codemirror/commands"
@@ -160,7 +162,7 @@ async function loadCodemirror(element: HTMLElement, { onRun, onInput }: LoadEdit
 		]),
 	);
 
-	const { importTheme } = await import("./codemirror-themes");
+	console.log("keymap built");
 
 	const editor = new EditorView({
 		state: EditorState.create({
@@ -181,6 +183,7 @@ async function loadCodemirror(element: HTMLElement, { onRun, onInput }: LoadEdit
 			],
 		}),
 	});
+	console.log("editor built");
 	// Can't disable outline in any other way
 	editor.dom.style.outline = "none";
 	element.replaceWith(editor.dom);

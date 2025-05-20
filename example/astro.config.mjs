@@ -8,7 +8,7 @@ export default defineConfig({
   site: "https://garriga.dev",
   base: "/rubri",
   integrations: [compress(), compressor({
-    brotli: true,
+    brotli: false,
     fileExtensions: [".css", ".js", ".html", ".xml", ".cjs", ".mjs", ".svg", ".txt"]
   })]
 });
